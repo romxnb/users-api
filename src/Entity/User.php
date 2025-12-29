@@ -8,13 +8,17 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\State\ProcessorInterface as BuiltinProcessorInterface;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Validator\Constraints as Assert;
 
 
 #[ApiResource(
@@ -58,7 +62,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     #[Groups(['user:read'])]
-    private ?Uuid $id = null;
+    private ?Uuid $id;
 
     #[ORM\Column(length: 180, unique: true)]
     #[Groups(['user:read', 'user:write'])]
@@ -70,13 +74,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     // Stored hashed. Never returned.
     #[ORM\Column(length: 255)]
-    #[Groups(['user:write'])]
     private string $pass;
+
+    /**
+     * Plain password, used only for write operations.
+     *
+     * Exposed in the API schema and accepted on POST/PUT.
+     */
+    #[Groups(['user:write'])]
+    #[SerializedName('pass')]
+    #[Assert\NotBlank(message: 'Password is required.')]
+    private ?string $plainPassword = null;
 
     // Needed for root vs user
     #[ORM\Column(type: 'json')]
     #[Groups(['user:read', 'user:write'])]
-    private array $roles = [];
+    private array $roles;
 
     public function __construct()
     {
@@ -120,6 +133,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $pass): self
     {
         $this->pass = $pass;
+        return $this;
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
         return $this;
     }
 

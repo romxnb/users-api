@@ -11,6 +11,11 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 final class ApiExceptionSubscriber implements EventSubscriberInterface
 {
+    public function __construct(
+        private readonly bool $debug = false,
+    ) {
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [KernelEvents::EXCEPTION => 'onKernelException'];
@@ -50,7 +55,11 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
             ],
         ];
 
-        // IMPORTANT: no trace, no file/line, no previous exception dump
+        if ($this->debug) {
+            $payload['error']['exception'] = $e::class;
+            $payload['error']['detail'] = $e->getMessage();
+        }
+
         $event->setResponse(new JsonResponse($payload, $status));
     }
 }

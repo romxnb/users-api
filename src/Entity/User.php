@@ -47,8 +47,7 @@ use Symfony\Component\Uid\Uuid;
             uriTemplate: '/users/{id}',
             security: "is_granted('ROLE_ROOT')"
         ),
-    ],
-    routePrefix: '/v1/api'
+    ]
 )]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]

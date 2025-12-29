@@ -10,3 +10,11 @@ api_platform:
     collection:
         pagination:
             enabled: true
+
+    swagger:
+        # Keep the token after page refresh
+        persist_authorization: true
+        api_keys:
+            JWT:
+                name: Authorization
+                type: header

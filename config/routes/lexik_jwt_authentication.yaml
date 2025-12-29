@@ -1,0 +1,6 @@
+# Expose the LexikJWTAuthenticationBundle login route.
+# This defines the endpoint that your firewall's json_login.check_path points to.
+api_login_check:
+    path: /v1/api/auth/login
+    methods: [POST]
+

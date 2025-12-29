@@ -28,7 +28,8 @@ use Symfony\Component\Uid\Uuid;
             uriTemplate: '/users',
             normalizationContext: ['groups' => ['user:read']],
             denormalizationContext: ['groups' => ['user:write']],
-            security: "is_granted('ROLE_ROOT')"
+            security: "is_granted('ROLE_ROOT')",
+            processor: \App\State\UserPasswordHashProcessor::class
         ),
         new Get(
             uriTemplate: '/users/{id}',
@@ -39,7 +40,8 @@ use Symfony\Component\Uid\Uuid;
             uriTemplate: '/users/{id}',
             normalizationContext: ['groups' => ['user:read']],
             denormalizationContext: ['groups' => ['user:write']],
-            security: "is_granted('ROLE_ROOT') or object == user"
+            security: "is_granted('ROLE_ROOT') or object == user",
+            processor: \App\State\UserPasswordHashProcessor::class
         ),
         new Delete(
             uriTemplate: '/users/{id}',

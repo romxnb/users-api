@@ -21,3 +21,7 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\State\UserPasswordHashProcessor:
+        decorates: 'api_platform.doctrine.orm.state.persist_processor'
+        arguments: [ '@App\State\UserPasswordHashProcessor.inner', '@security.user_password_hasher' ]

@@ -16,6 +16,38 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\Uuid;
 
+
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/users',
+            normalizationContext: ['groups' => ['user:read']],
+            security: "is_granted('ROLE_ROOT')"
+        ),
+        new Post(
+            uriTemplate: '/users',
+            normalizationContext: ['groups' => ['user:read']],
+            denormalizationContext: ['groups' => ['user:write']],
+            security: "is_granted('ROLE_ROOT')"
+        ),
+        new Get(
+            uriTemplate: '/users/{id}',
+            normalizationContext: ['groups' => ['user:read']],
+            security: "is_granted('ROLE_ROOT') or object == user"
+        ),
+        new Put(
+            uriTemplate: '/users/{id}',
+            normalizationContext: ['groups' => ['user:read']],
+            denormalizationContext: ['groups' => ['user:write']],
+            security: "is_granted('ROLE_ROOT') or object == user"
+        ),
+        new Delete(
+            uriTemplate: '/users/{id}',
+            security: "is_granted('ROLE_ROOT')"
+        ),
+    ],
+    routePrefix: '/v1/api'
+)]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[UniqueEntity(fields: ['login'], message: 'login is already taken')]

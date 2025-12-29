@@ -9,8 +9,7 @@ services:
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       # Run "composer require symfony/orm-pack" to install and configure Doctrine ORM
-      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-15}&charset=${POSTGRES_CHARSET:-utf8}
-      # Run "composer require symfony/mercure-bundle" to install and configure the Mercure integration
+      DATABASE_URL: mysql://app:!ChangeMe!@database:3306/app?serverVersion=8.4&charset=utf8mb4
       MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
       MERCURE_PUBLIC_URL: ${CADDY_MERCURE_PUBLIC_URL:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-443}/.well-known/mercure}
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
@@ -34,6 +33,18 @@ services:
         published: ${HTTP3_PORT:-443}
         protocol: udp
 
+  database:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: app
+      MYSQL_USER: app
+      MYSQL_PASSWORD: "!ChangeMe!"
+      MYSQL_ROOT_PASSWORD: "root"
+    volumes:
+      - database_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
 # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
@@ -41,5 +52,6 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  database_data:
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###

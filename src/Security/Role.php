@@ -2,11 +2,6 @@
 
 namespace App\Security;
 
-/**
- * Central definition of application roles.
- *
- * Symfony ultimately works with role strings ("ROLE_…"), so we keep the enum backed by string.
- */
 enum Role: string
 {
     case USER = 'ROLE_USER';
@@ -29,15 +24,6 @@ enum Role: string
         return null;
     }
 
-    /**
-     * Normalizes a list of role strings.
-     * - drops unknown roles
-     * - de-dupes
-     * - guarantees ROLE_USER
-     *
-     * @param list<string> $roles
-     * @return list<string>
-     */
     public static function normalizeStrings(array $roles): array
     {
         $normalized = [];

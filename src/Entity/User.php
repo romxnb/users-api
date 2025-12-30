@@ -31,8 +31,8 @@ use App\Security\Role;
             normalizationContext: ['groups' => ['user:read']],
             denormalizationContext: ['groups' => ['user:create']],
             security: "is_granted('ROLE_ROOT')",
-            processor: \App\State\UserPasswordHashProcessor::class,
             validationContext: ['groups' => ['Default', 'user:create']],
+            processor: \App\State\UserPasswordHashProcessor::class,
         ),
         new Get(
             uriTemplate: '/users/{id}',
@@ -44,9 +44,9 @@ use App\Security\Role;
             normalizationContext: ['groups' => ['user:read']],
             denormalizationContext: ['groups' => ['user:update']],
             security: "is_granted('ROLE_ROOT') or object == user",
+            validationContext: ['groups' => ['Default', 'user:update']],
             processor: \App\State\UserPasswordHashProcessor::class,
             extraProperties: ['standard_put' => false],
-            validationContext: ['groups' => ['Default', 'user:update']],
         ),
         new Delete(
             uriTemplate: '/users/{id}',
@@ -81,11 +81,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private string $pass;
 
-    /**
-     * Plain password, used only for write operations.
-     *
-     * Exposed in the API schema and accepted on POST/PUT.
-     */
     #[Groups(['user:create', 'user:update'])]
     #[SerializedName('pass')]
     #[Assert\NotBlank(message: 'Password is required.', groups: ['user:create'])]
@@ -94,11 +89,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotCompromisedPassword(skipOnError: true, groups: ['user:create', 'user:update'])]
     private ?string $plainPassword = null;
 
-    /**
-     * Security roles.
-     *
-     * Read-only from the API: clients must not be able to self-assign roles.
-     */
     #[ORM\Column(type: 'json')]
     private array $roles;
 
@@ -135,7 +125,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    // This returns hashed password to Symfony (required by PasswordAuthenticatedUserInterface)
     public function getPassword(): string
     {
         return $this->pass;

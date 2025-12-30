@@ -35,7 +35,6 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
         $status = 500;
         $message = 'Internal Server Error';
 
-        // Respect HttpExceptions (404, 403, etc.)
         if ($e instanceof HttpExceptionInterface) {
             $status = $e->getStatusCode();
             $message = $e->getMessage() ?: $message;

@@ -25,7 +25,6 @@ final class UserPasswordHashProcessor implements ProcessorInterface
                 $data->setPassword($this->passwordHasher->hashPassword($data, $raw));
             }
 
-            // Never persist plain-text passwords
             $data->setPlainPassword(null);
         }
 

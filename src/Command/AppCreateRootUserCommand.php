@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\User;
+use App\Security\Role;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -50,7 +51,7 @@ final class AppCreateRootUserCommand extends Command
         }
 
         $user->setPhone($phone);
-        $user->setRoles(['ROLE_ROOT']); // important: ROOT role
+        $user->setRoleEnums(Role::ROOT); // important: ROOT role
 
         // Hash password safely
         $user->setPassword($this->hasher->hashPassword($user, $pass));

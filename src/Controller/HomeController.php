@@ -11,6 +11,6 @@ final class HomeController extends AbstractController
     #[Route('/', name: 'home')]
     public function __invoke(): Response
     {
-        return $this->redirect('v1/api');
+        return $this->redirect('api/v1');
     }
 }

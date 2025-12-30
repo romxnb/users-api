@@ -26,7 +26,7 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
 
         // Only affect your API routes
-        if (!str_starts_with($request->getPathInfo(), '/v1/api')) {
+        if (!str_starts_with($request->getPathInfo(), '/api/v1')) {
             return;
         }
 

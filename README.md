@@ -1,7 +1,5 @@
 # Users API
 
-Symfony 8 + API Platform project running on FrankenPHP/Caddy with MySQL.
-
 ## Prerequisites
 
 - Docker Desktop (or Docker Engine + Docker Compose v2)
@@ -83,20 +81,15 @@ If you want to overwrite existing keys:
 docker compose exec php php bin/console lexik:jwt:generate-keypair --overwrite
 ```
 
-### 6) (Optional) Create a root user
-
-If your project includes the `app:create-root-user` command:
+### 6) Create a root user
 
 ```bash
-docker compose exec php php bin/console app:create-root-user
+docker compose exec php php bin/console app:create-root
 ```
 
 ### 7) Access the API
 
 - API: `http://localhost/`
-- If you enabled HTTPS via Caddy: `https://localhost/` (may require trusting the local cert)
-
-Login endpoint (see `config/packages/security.yaml`):
 
 - `POST /api/v1/auth/login`
 - JSON body uses `login` and `pass`
@@ -111,31 +104,8 @@ curl -X POST http://localhost/api/v1/auth/login \
 
 ## Common commands
 
-```bash
-# View logs
-docker compose logs -f php
-
 # Run tests
 docker compose exec php php vendor/bin/phpunit
 
 # Stop
 docker compose down
-```
-
-## Troubleshooting
-
-### JWT keys not found / invalid passphrase
-
-- Ensure `.env.local` contains `JWT_SECRET_KEY`, `JWT_PUBLIC_KEY`, `JWT_PASSPHRASE`.
-- Ensure the files exist in the container:
-
-```bash
-docker compose exec php ls -la config/jwt
-```
-
-- Re-generate:
-
-```bash
-docker compose exec php php bin/console lexik:jwt:generate-keypair --overwrite
-```
-

@@ -8,6 +8,7 @@
 /var/
 /vendor/
 /.idea/
+/.phpunit.cache/
 ###< symfony/framework-bundle ###
 
 ###> lexik/jwt-authentication-bundle ###

@@ -19,7 +19,7 @@ final class UserPasswordHashProcessor implements ProcessorInterface
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
         if ($data instanceof User) {
-            $raw = $data->getPlainPassword() ?? '';
+            $raw = trim($data->getPlainPassword() ?? '');
 
             if ($raw !== '') {
                 $data->setPassword($this->passwordHasher->hashPassword($data, $raw));

@@ -19,7 +19,6 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Security\Role;
 
-
 #[ApiResource(
     operations: [
         new GetCollection(
@@ -32,7 +31,8 @@ use App\Security\Role;
             normalizationContext: ['groups' => ['user:read']],
             denormalizationContext: ['groups' => ['user:create']],
             security: "is_granted('ROLE_ROOT')",
-            processor: \App\State\UserPasswordHashProcessor::class
+            processor: \App\State\UserPasswordHashProcessor::class,
+            validationContext: ['groups' => ['Default', 'user:create']],
         ),
         new Get(
             uriTemplate: '/users/{id}',
@@ -44,32 +44,38 @@ use App\Security\Role;
             normalizationContext: ['groups' => ['user:read']],
             denormalizationContext: ['groups' => ['user:update']],
             security: "is_granted('ROLE_ROOT') or object == user",
-            processor: \App\State\UserPasswordHashProcessor::class
+            processor: \App\State\UserPasswordHashProcessor::class,
+            extraProperties: ['standard_put' => false],
+            validationContext: ['groups' => ['Default', 'user:update']],
         ),
         new Delete(
             uriTemplate: '/users/{id}',
-            security: "is_granted('ROLE_ROOT')"
+            security: "is_granted('ROLE_ROOT') or object == user",
         ),
     ]
 )]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[UniqueEntity(fields: ['login'], message: 'login is already taken')]
-#[UniqueUserPhone]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'user:update'])]
     private ?Uuid $id;
 
     #[ORM\Column(length: 180, unique: true)]
-    #[Groups(['user:read', 'user:create'])]
-    private string $login;
+    #[Groups(['user:read', 'user:create', 'user:update'])]
+    #[Assert\NotBlank(message: 'Login is required.', groups: ['Default', 'user:create', 'user:update'])]
+    #[Assert\Length(min: 3, max: 180, minMessage: 'Login must be at least {{ limit }} characters.', maxMessage: 'Login cannot exceed {{ limit }} characters.', groups: ['Default', 'user:create', 'user:update'])]
+    #[Assert\Regex(pattern: '/^[A-Za-z0-9._-]+$/', message: 'Login can only contain letters, numbers, dots, underscores, or dashes.', groups: ['Default', 'user:create', 'user:update'])]
+    private string $login = '';
 
     #[ORM\Column(length: 32, unique: true)]
     #[Groups(['user:read', 'user:create', 'user:update'])]
-    private string $phone;
+    #[Assert\NotBlank(message: 'Phone is required.', groups: ['Default', 'user:create', 'user:update'])]
+    #[Assert\Regex(pattern: '/^\+[1-9]\d{9,14}$/', message: 'Phone number must be in E.164 format (+1234567890).', groups: ['Default', 'user:create', 'user:update'])]
+    private string $phone = '';
 
     // Stored hashed. Never returned.
     #[ORM\Column(length: 255)]
@@ -82,7 +88,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[Groups(['user:create', 'user:update'])]
     #[SerializedName('pass')]
-    #[Assert\NotBlank(message: 'Password is required.')]
+    #[Assert\NotBlank(message: 'Password is required.', groups: ['user:create'])]
+    #[Assert\Length(min: 8, max: 255, minMessage: 'Password must be at least {{ limit }} characters.', groups: ['user:create', 'user:update'])]
+    #[Assert\Regex(pattern: '/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?\d).+$/', message: 'Password must contain upper, lower case letters and digits.', groups: ['user:create', 'user:update'])]
+    #[Assert\NotCompromisedPassword(skipOnError: true, groups: ['user:create', 'user:update'])]
     private ?string $plainPassword = null;
 
     /**
@@ -91,7 +100,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * Read-only from the API: clients must not be able to self-assign roles.
      */
     #[ORM\Column(type: 'json')]
-    #[Groups(['user:read'])]
     private array $roles;
 
     public function __construct()
@@ -112,7 +120,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setLogin(string $login): self
     {
-        $this->login = $login;
+        $this->login = trim($login);
         return $this;
     }
 
@@ -123,7 +131,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setPhone(string $phone): self
     {
-        $this->phone = $phone;
+        $this->phone = trim($phone);
         return $this;
     }
 
@@ -155,9 +163,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return Role::normalizeStrings($this->roles);
     }
 
-    /**
-     * Intentionally not writable via API (no write groups). Use only from trusted code paths.
-     */
     public function setRoles(array $roles): self
     {
         $this->roles = Role::normalizeStrings($roles);
@@ -179,14 +184,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $out;
     }
 
-//    public function hasRole(Role $role): bool
-//    {
-//        return in_array($role->value, $this->getRoles(), true);
-//    }
-
     public function setRoleEnums(Role ...$roles): self
     {
-        $this->roles = Role::normalizeStrings(array_map(static fn (Role $r) => $r->value, $roles));
+        $this->roles = Role::normalizeStrings(array_map(static fn(Role $r) => $r->value, $roles));
         return $this;
     }
 

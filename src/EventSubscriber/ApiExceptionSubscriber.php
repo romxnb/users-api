@@ -25,7 +25,6 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        // Only affect your API routes
         if (!str_starts_with($request->getPathInfo(), '/api/v1')) {
             return;
         }
@@ -42,7 +41,6 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
             $message = $e->getMessage() ?: $message;
         }
 
-        // Handle DB unique constraint nicely (login/phone uniqueness)
         if ($e instanceof UniqueConstraintViolationException) {
             $status = 409;
             $message = 'Unique constraint violation.';
@@ -58,6 +56,7 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
         if ($this->debug) {
             $payload['error']['exception'] = $e::class;
             $payload['error']['detail'] = $e->getMessage();
+            $payload['error']['trace'] = $e->getTrace();
         }
 
         $event->setResponse(new JsonResponse($payload, $status));

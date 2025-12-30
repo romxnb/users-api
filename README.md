@@ -87,6 +87,11 @@ docker compose exec php php bin/console lexik:jwt:generate-keypair --overwrite
 docker compose exec php php bin/console app:create-root
 ```
 
+```bash
+login: root
+pass: rootpass
+```
+
 ### 7) Access the API
 
 - API: `http://localhost/`
